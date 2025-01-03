@@ -67,7 +67,7 @@
                 }
 
                 const uploadData = await uploadResponse.json();
-                const imageUrl = uploadData.data.link.replace(/^https://imgur\.com\//, 'https://i.imgur.com/'); // Ensure Imgur URL is in correct format
+                const imageUrl = uploadData.data.link; // Use the direct link provided by Imgur
 
                 console.log(`Uploaded Image URL: ${imageUrl}`);
 
