@@ -36,8 +36,8 @@
         <div id="result"></div>
     </div>
 
+    <script src="config.js"></script>
     <script>
-        const apiKey = '20f1b46ece7fe906cf5289b12bb1fc1695b736ccaa80cd05a9d0ce58ceb4fd9f'; // Replace with your SerpApi key
         const uploadButton = document.getElementById('uploadButton');
         const imageInput = document.getElementById('imageInput');
         const resultDiv = document.getElementById('result');
@@ -57,7 +57,7 @@
                 const uploadResponse = await fetch('https://api.imgur.com/3/image', {
                     method: 'POST',
                     headers: {
-                        Authorization: 'Client-ID 4cd3308b6a68dd8' // Replace with your Imgur Client ID
+                        Authorization: `Client-ID ${imgurClientId}`
                     },
                     body: formData
                 });
@@ -67,18 +67,24 @@
                 }
 
                 const uploadData = await uploadResponse.json();
-                const imageUrl = uploadData.data.link.replace(/^https:\/\/imgur\.com\//, 'https://i.imgur.com/'); // Ensure Imgur URL is in correct format
+                const imageUrl = uploadData.data.link.replace(/^https://imgur\.com\//, 'https://i.imgur.com/'); // Ensure Imgur URL is in correct format
+
+                console.log(`Uploaded Image URL: ${imageUrl}`);
 
                 // Step 2: Perform reverse image search using the uploaded image URL
-                const searchResponse = await fetch(`https://serpapi.com/search.json?engine=google_reverse_image&image_url=${encodeURIComponent(imageUrl)}&api_key=${apiKey}`);
+                const searchResponse = await fetch(`https://serpapi.com/search.json?engine=google_reverse_image&image_url=${encodeURIComponent(imageUrl)}&api_key=${serpApiKey}`);
+
+                console.log(`Request URL: https://serpapi.com/search.json?engine=google_reverse_image&image_url=${encodeURIComponent(imageUrl)}&api_key=${serpApiKey}`);
 
                 if (!searchResponse.ok) {
-                    throw new Error("Error with the reverse image search.");
+                    throw new Error(`Error with the reverse image search. Status: ${searchResponse.status}`);
                 }
 
                 const data = await searchResponse.json();
+                console.log('Search Results:', data);
                 displayResults(data);
             } catch (error) {
+                console.error('Error:', error);
                 resultDiv.innerHTML = `<p style="color: red;">${error.message}</p>`;
             }
         });
