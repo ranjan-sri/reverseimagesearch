@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Reverse Image Search with SerpApi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        input[type="file"], button {
+            margin-bottom: 10px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Google Reverse Image Search</h1>
+        <p>Upload an image to search using SerpApi's Google Reverse Image API.</p>
+        <input type="file" id="imageInput" accept="image/*">
+        <button id="uploadButton">Upload & Search</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const apiKey = '20f1b46ece7fe906cf5289b12bb1fc1695b736ccaa80cd05a9d0ce58ceb4fd9f'; // Replace with your SerpApi key
+        const uploadButton = document.getElementById('uploadButton');
+        const imageInput = document.getElementById('imageInput');
+        const resultDiv = document.getElementById('result');
+
+        uploadButton.addEventListener('click', async () => {
+            const file = imageInput.files[0];
+            if (!file) {
+                alert("Please select an image to upload.");
+                return;
+            }
+
+            try {
+                // Step 1: Upload the image to Imgur
+                const formData = new FormData();
+                formData.append('image', file);
+
+                const uploadResponse = await fetch('https://api.imgur.com/3/image', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: 'Client-ID 4cd3308b6a68dd8' // Replace with your Imgur Client ID
+                    },
+                    body: formData
+                });
+
+                if (!uploadResponse.ok) {
+                    throw new Error("Failed to upload the image to Imgur.");
+                }
+
+                const uploadData = await uploadResponse.json();
+                const imageUrl = uploadData.data.link.replace(/^https:\/\/imgur\.com\//, 'https://i.imgur.com/'); // Ensure Imgur URL is in correct format
+
+                // Step 2: Perform reverse image search using the uploaded image URL
+                const searchResponse = await fetch(`https://serpapi.com/search.json?engine=google_reverse_image&image_url=${encodeURIComponent(imageUrl)}&api_key=${apiKey}`);
+
+                if (!searchResponse.ok) {
+                    throw new Error("Error with the reverse image search.");
+                }
+
+                const data = await searchResponse.json();
+                displayResults(data);
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">${error.message}</p>`;
+            }
+        });
+
+        function displayResults(data) {
+            if (data && data.image_results) {
+                resultDiv.innerHTML = '<h3>Search Results:</h3>';
+                data.image_results.forEach((result, index) => {
+                    resultDiv.innerHTML += `
+                        <p><strong>Result ${index + 1}:</strong> <a href="${result.link}" target="_blank">${result.link}</a></p>
+                    `;
+                });
+            } else {
+                resultDiv.innerHTML = '<p>No results found.</p>';
+            }
+        }
+    </script>
+</body>
+</html>
